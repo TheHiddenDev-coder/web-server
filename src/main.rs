@@ -1,5 +1,6 @@
 #[allow(unused)]
 use std::{
+    fs,
     io::prelude::*,
     net::{TcpListener, TcpStream},
 };
@@ -19,7 +20,14 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.read(&mut buffer).unwrap();
 
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
+    let contents = fs::read_to_string("index.html").unwrap();
+
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+        contents.len(),
+        contents
+    );
+
     stream.write(response.as_bytes()).unwrap();
     let _ = stream.flush().unwrap();
 }
