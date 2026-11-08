@@ -1,9 +1,6 @@
-#[allow(unused)]
-use std::{
-    fs,
-    io::prelude::*,
-    net::{TcpListener, TcpStream},
-};
+use std::io::prelude::*;
+use std::net::{TcpListener, TcpStream};
+mod get_req_handler;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:8000").unwrap();
@@ -19,31 +16,11 @@ fn handle_connection(mut stream: TcpStream) {
     let mut buffer: [u8; 1024] = [0; 1024];
     stream.read(&mut buffer).unwrap();
 
-    let get = b"GET / HTTP/1.1\r\n";
+    let get_index = b"GET / HTTP/1.1\r\n";
 
-    if buffer.starts_with(get) {
-        let contents = fs::read_to_string("index.html").unwrap();
-
-        let response = format!(
-            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-            contents.len(),
-            contents
-        );
-
-        stream.write(response.as_bytes()).unwrap();
-        let _ = stream.flush().unwrap();
+    if buffer.starts_with(get_index) {
+        get_req_handler::get_main_page(stream);
     } else {
-        let status_line = "HTTP/1.1 404 NOT FOUND";
-        let contents = fs::read_to_string("404.html").unwrap();
-
-        let response = format!(
-            "{}\r\nContent-Length: {}\r\n\r\n{}",
-            status_line,
-            contents.len(),
-            contents
-        );
-
-        stream.write(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+        get_req_handler::get_404(stream);
     }
 }
